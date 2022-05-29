@@ -1,0 +1,200 @@
+#!/usr/bin/env oil
+
+const foo = 3 * 'a'           # Expression mode
+
+echo "Test $foo"              # Interpolation
+echo "$[2 * 4] \$notvar"
+echo $(ls)
+echo $abs(-2)
+proc fff(xxx) { echo $xxx }
+
+# Blocks
+if (foo ~ /[a-z]+/) {         # Expression mode after if keyword
+	echo one
+} elif false {
+	echo two
+} else {
+
+	ls |                      # Pipe and continued command
+		wc -l \
+		>/dev/null
+
+	echo """
+	Multiline string
+	$foo
+	"""
+
+}
+
+shopt -u errexit { false; }   # Shopt
+
+var mydic = {                 # Dict
+	oil : 'shell',
+	"is": $'nice\n',
+}
+
+exit
+echo  "\$ \n"                 # Escape sequences
+echo $'\$ \n'                 # Invalid ones are colored differently
+
+
+
+## Indent (pipe, dict)
+
+ls |
+	wc -l \
+	> /dev/null
+
+var mydic = {
+	a: 10,
+	b: 20,
+	c: 30,
+}
+
+if true {
+	if true {
+		echo yes |
+			grep y
+	}
+	var data2 = {
+		hello: "world",
+		good: "bye",
+		bad: "bey",
+	}
+	sort <<< '''
+	A\tB
+$2
+	$var
+	'''
+}
+
+## Blocks
+
+if (1 > 0) {
+	echo one
+} elif (1 < 0) {
+	echo two
+} else {
+	echo three
+}
+
+case 'aa' {
+	(0) echo '}' ;;
+	(a) if (1===(2-1)) { echo a } ;;
+	(b)
+		echo b
+		echo b
+		;;
+	(b)
+		echo ;;
+	(c) echo c
+		echo c ;;
+	(*) echo '*' ;;
+}
+
+## String, escape sequences
+
+if (0 === 1) {
+	# echo   "\n"  $'\$'  "\'"  "\x41" # these are errors
+
+	echo "newline"
+	# echo   "\n" # ERROR
+	echo     '\n' # literal
+	echo    $'\n' # char escape
+
+	echo "dollar"
+	echo     "\$" # operator escape
+	echo     '\$' # literal
+	# echo  $'\$' # ERROR
+
+	echo "double quote"
+	echo     "\"" # operator escape
+	echo     '\"' # literal
+	echo    $'\"' # operator escape
+
+	echo "backslash"
+	echo     "\\" # operator escape
+	echo     '\\' # literal
+	echo    $'\\' # operator escape
+
+	echo  "single quote"
+	# echo   "\'" # ERROR
+	# echo   '\'' # unclosed string
+	echo    $'\'' # operator escape
+
+	echo  "A (\\x41)"
+	# echo   "\x41" # ERROR
+	echo     '\x41' # literal
+	echo    $'\x41' # char escape
+
+	echo $'\u{61}and\u3042'
+
+}
+
+if (1 === 1) {
+	var mul = """
+	aaa
+	bbb
+	ccc"""
+	echo yes
+}
+
+## String interpolation
+
+echo  "3*5 = $[3 * 5]"
+echo $'3*5 = $[3 * 5]'
+echo $[3 * 5]
+echo $["a" * 5]
+echo $(ls)
+echo $abs(-2)
+
+var foo = 10
+# echo "$foo or ${foo} or $(ls) or $[3 * 5] or $abs(-2)"
+
+var foo = $foo
+const foo1 = """
+aaaa
+"""
+
+## Expression mode
+
+if (foo ~ /[0-9]*/) {
+	echo "$foo is a integer"
+} elif (true or false) {
+	echo what
+}
+
+var foo10 = 'aaaa'
+echo $['a' + '$foo10' + "$foo10"]
+
+= {a:1,b:2}
+
+proc myfunc() {
+	return 10
+}
+
+## Misc
+
+exit
+
+if (aaa === 10) { echo yes }
+if (aaa === 10) { # comment
+	echo yes
+}
+
+git branch --merged | while read --line {
+	var line = _line.strip()
+	# The * prefix means the branch is unmerged
+	if (line != 'master' and not line.startswith('*')) {
+		echo $line
+	}
+} | readarray -t :branches
+
+if (len(branches) == 0) {
+	echo "No merged branches"
+} else {
+	git branch -D @branches
+}
+
+
+# vim: set fdm=indent

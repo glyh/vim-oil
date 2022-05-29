@@ -1,0 +1,45 @@
+set rtp+=..
+
+" Vim only
+filetype on
+filetype plugin indent on
+syntax on
+set nocompatible
+
+" Misc
+set mouse=a ai sw=4 ts=4 sts=4
+nnore Q :qa!<cr>
+nnore <c-h> :call DescribeFace()<cr>
+nnore <f6>  :call OilReload()<cr>
+nnore <f7>  :echo GetOilIndent(1)<cr>
+
+" What syntax items are under cursor?
+fu! DescribeFace()
+    let first = 1
+    for id in synstack(line("."), col("."))
+        if first == 1 | let first = 0 | else | echon " > " | endif
+        let name = synIDattr(id, "name")
+        let nameTrans = synIDattr(synIDtrans(id), "name")
+        exe "echohl " . name | echon name . (name != nameTrans ? "(" . nameTrans . ")" : "") | echohl None
+    endfor
+endfu
+
+" Reload
+fu! OilReload()
+    unlet b:did_ftplugin
+    unlet b:current_syntax
+    unlet b:did_indent
+    delfunction GetOilIndent
+
+    syntax clear
+
+    source ../syntax/oil.vim
+    source ../indent/oil.vim
+    source ../ftplugin/oil.vim
+
+    syntax sync fromstart
+    let w = winsaveview()
+    sil norm! ggVG=\<c-l>
+    call winrestview(w)
+endfu
+
