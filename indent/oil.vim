@@ -90,7 +90,7 @@ endfu
 
 fu! s:IsCaseClauseStart(lnum)
     " Check current line starts with case pattern "(pat)"
-    return s:HasSyntaxAt(a:lnum, indent(a:lnum), "oilParenCasePat")
+    return s:HasSyntaxAt(a:lnum, indent(a:lnum), "oilCasePatParen")
 endfu
 
 fu! s:IsInCaseClause(lnum)

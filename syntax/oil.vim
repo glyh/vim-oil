@@ -50,12 +50,12 @@ endfu
 " Note: keywords inside expression modes are defined later.
 " keywords
 syn keyword oilKwd        break class continue data do done enum esac exit fi func function import in return then time until
-syn keyword oilKwd        skipwhite nextgroup=oilProcName proc
+syn keyword oilKwd        skipwhite nextgroup=oilProcName      proc
 syn keyword oilKwdCond    skipwhite nextgroup=oilCaseStart     case
 syn keyword oilKwdCond    else
 " keywords that (may) sta expression mode
-syn keyword oilKwdCond    skipwhite nextgroup=oilParenExprWrap if elif
-syn keyword oilKwdRepeat  skipwhite nextgroup=oilParenExprWrap for while
+syn keyword oilKwdCond    skipwhite nextgroup=oilExprWrapParen if elif
+syn keyword oilKwdRepeat  skipwhite nextgroup=oilExprWrapParen for while
 syn keyword oilKwdAssign  skipwhite nextgroup=oilAssignVar     var const setvar setglobal setref
 " shopt (extracted from oil/frontend/option_def.py)
 syn match   oilShoptFlagS contained skipwhite nextgroup=oilShoptOptS +-\(s\|set\)+
@@ -79,10 +79,10 @@ syn keyword oilTodo       contained TODO FIXME NOTE
 " note: later rules have higher priority
 OilSynCluster oilStringList
             \ oilStringD oilStringS oilStringC oilStringMD oilStringMS oilStringMC
-syn region  oilStringD    start=+\\\@1<!"+     skip=+\\\\\|\\"+ end=+"+   contains=oilEscapeD,oilEscapeDE,oilVar,oilCommandSub,oilBracketExprWrap,oilExprWrapExprSubE
+syn region  oilStringD    start=+\\\@1<!"+     skip=+\\\\\|\\"+ end=+"+   contains=oilEscapeD,oilEscapeDE,oilVar,oilCommandSub,oilExprWrapExprSub,oilExprWrapFuncCallE
 syn region  oilStringS    start=+\\\@1<!'+                      end=+'+
 syn region  oilStringC    start=+\\\@1<![$c]'+ skip=+\\\\\|\\'+ end=+'+   contains=oilEscapeC,oilEscapeCE
-syn region  oilStringMD   start=+"""+                           end=+"""+ contains=oilEscapeD,oilEscapeDE,oilVar,oilCommandSub,oilBracketExprWrap,oilExprWrapExprSubE
+syn region  oilStringMD   start=+"""+                           end=+"""+ contains=oilEscapeD,oilEscapeDE,oilVar,oilCommandSub,oilExprWrapExprSub,oilExprWrapFuncCallE
 syn region  oilStringMS   start=+'''+                           end=+'''+
 syn region  oilStringMC   start=+[$c]'''+                       end=+'''+ contains=oilEscapeC,oilEscapeCE
 
@@ -98,63 +98,81 @@ syn match oilEscapeCE contained +\\[$]+                                         
 
 
 " ===== Parens, braces and brackets ===== {{{
+
 OilSynCluster oilParenList
-            \ oilParen oilBrace oilBracket oilParenExprWrap oilBraceCase oilParenExprWrap
+            \ oilParen oilBrace oilBracket
+            \ oilExpr_Paren oilExpr_Brace oilExpr_Bracket
+            \ oilExprWrapParen oilExprWrapParenE oilExprWrapBracket oilCommandSubParen
+            \ oilCaseBrace oilCasePatParen
 
 syn region oilParen                     matchgroup=oilDelim        start=+(+    end=+)+  contains=TOP
 syn region oilBrace                     matchgroup=oilDelim        start=+{+    end=+}+  contains=TOP
 syn region oilBracket                   matchgroup=oilDelim        start=+\[+   end=+\]+ contains=TOP
 
-" if (expr)
-syn region oilParenExprWrap   contained matchgroup=oilExprWrapList start=+(+    end=+)+  contains=@oilExpr_List
+" All kinds of parens inside expr
+syn region oilExpr_Paren      contained matchgroup=oilExpr         start=+(+    end=+)+  contains=@oilExpr_List
+syn region oilExpr_Brace      contained matchgroup=oilExpr         start=+{+    end=+}+  contains=@oilExpr_List
+syn region oilExpr_Bracket    contained matchgroup=oilExpr         start=+\[+   end=+\]+ contains=@oilExpr_List
+
+" if (expr), func(args)
+syn region oilExprWrapParen   contained matchgroup=oilExpr         start=+(+    end=+)+  contains=@oilExpr_List
 
 " invalid paren usage (like $func(arg) inside double quotes)
-syn region oilParenExprWrapE  contained matchgroup=Error           start=+(+    end=+)+  contains=oilParenExprWrapE
-
-" $(cmd)
-syn region oilParenCommandSub contained matchgroup=oilCommandSub   start=+(+    end=+)+  contains=TOP
-
-" pattrens in case block
-syn region oilParenCasePat    contained matchgroup=oilParenCasePat start=+(+    end=+)+  nextgroup=oilCaseClauseBody skipwhite skipempty
-
-" case { }
-syn region oilBraceCase       contained matchgroup=oilDelim        start=+{+    end=+}+  contains=oilCaseClause
+syn region oilExprWrapParenE  contained matchgroup=Error           start=+(+    end=+)+  contains=oilExprWrapParenE
 
 " $[expr]
-syn region oilBracketExprWrap contained matchgroup=oilExprWrapList start=+\$\[+ end=+\]+ contains=@oilExpr_List
+syn region oilExprWrapBracket contained matchgroup=oilExpr         start=+\[+   end=+\]+ contains=@oilExpr_List
+
+" $(cmd)
+syn region oilCommandSubParen contained matchgroup=oilCommandSub   start=+(+    end=+)+  contains=TOP
+
+
+" case { }
+syn region oilCaseBrace       contained matchgroup=oilDelim        start=+{+    end=+}+  contains=oilCaseClause
+
+" pattrens in case block
+syn region oilCasePatParen    contained matchgroup=oilCasePatParen start=+(+    end=+)+  nextgroup=oilCaseClauseBody skipwhite skipempty
 
 " }}}
 
 
 " ===== Expression mode wrappers ===== {{{
 OilSynCluster oilExprWrapList
-            \ oilParenExprWrap oilExprWrapExprSub oilBracketExprWrap oilExprWrapAssign oilExprWrapPPrint
+            \ oilExprWrapParen oilExprWrapBracket
+            \ oilExprWrapFuncCall oilExprWrapExprSub oilExprWrapAssign oilExprWrapPPrint
 OilSynCluster oilExprWrapEList
-            \ oilParenExprWrapE oilExprWrapExprSubE
+            \ oilExprWrapParenE oilExprWrapFuncCallE
 
 " $func(args) (expression substitution)
-syn match  oilExprWrapExprSub  +\$[a-zA-Z_][a-zA-Z_0-9]*\>\ze(+ nextgroup=oilParenExprWrap
+syn match  oilExprWrapFuncCall  +\$[a-zA-Z_][a-zA-Z_0-9]*\>\ze(+ nextgroup=oilExprWrapParen
 
 " $func(args) inside double quotes is error
-syn match  oilExprWrapExprSubE +\$[a-zA-Z_][a-zA-Z_0-9]*\>\ze(+ nextgroup=oilParenExprWrapE contained
+syn match  oilExprWrapFuncCallE +\$[a-zA-Z_][a-zA-Z_0-9]*\>\ze(+ nextgroup=oilExprWrapParenE contained
+
+" $[expr]
+syn match  oilExprWrapExprSub   +\$\ze\[+ nextgroup=oilExprWrapBracket
 
 " var foo = expr
 " TODO what if a dict or a multiline string is assigned
-syn match  oilAssignVar       +\w\++        contained skipwhite skipempty nextgroup=oilAssignEqual
-syn match  oilAssignEqual     +=+           contained skipwhite skipempty nextgroup=oilExprWrapAssign,oilVar,oilCommandSub
-syn match  oilExprWrapAssign  +[^$"' ].*$+  contained contains=@oilExpr_List,oilComment
+syn match  oilAssignVar         +\w\++        contained skipwhite skipempty nextgroup=oilAssignEqual
+syn match  oilAssignEqual       +=+           contained skipwhite skipempty nextgroup=oilExprWrapAssign,oilVar,oilCommandSub
+syn match  oilExprWrapAssign    +[^$"' ].*$+  contained contains=@oilExpr_List,oilComment
 
 " = expr (at the beginning of line)
-syn region oilExprWrapPPrint  start=+^\_s*=+ms=e+1 end=+$+ contains=@oilExpr_List,oilComment oneline
+syn region oilExprWrapPPrint    start=+^\_s*=+ms=e+1 end=+$+ contains=@oilExpr_List,oilComment oneline
 
 " }}}
 
 
 " ===== Expression mode components ===== {{{
+OilSynCluster oilExpr_DefaultList
+            \ oilExpr_Paren oilExpr_Brace oilExpr_Bracket
 OilSynCluster oilExpr_List
-            \ @oilStringList oilVariable oilParenExprWrap oilExpr_Eggex oilExpr_Op oilExpr_Function oilExpr_Constant
+            \ @oilStringList oilVariable
+            \ @oilExpr_DefaultList
+            \ oilExpr_Eggex oilExpr_Op oilExpr_Function oilExpr_Constant
 
-syn region  oilExpr_Eggex    contained start=+/+ skip=+\\\\\|\\/+ end=+/+ containedin=oilParenExprWrap,oilBracketExprWrap
+syn region  oilExpr_Eggex    contained start=+/+ skip=+\\\\\|\\/+ end=+/+
 syn keyword oilExpr_Op       contained and or not == ~
 syn keyword oilExpr_Function contained abs len strip startswith tup _start _end _match
 syn keyword oilExpr_Constant contained true false
@@ -164,9 +182,9 @@ syn keyword oilExpr_Constant contained true false
 " ===== Misc ===== {{{
 
 " Case block beginning   (that is, "$x" in "case $x { ... }")
-syn match  oilCaseStart      contained skipwhite skipempty  +[^{]*+                  contains=TOP nextgroup=oilBraceCase
+syn match  oilCaseStart      contained skipwhite skipempty  +[^{]*+                  contains=TOP nextgroup=oilCaseBrace
 " Case block clause      (from "(pat)" to ";;")
-syn region oilCaseClause     contained skipwhite skipempty start=+([^)]\+)+ end=+;;+ contains=oilParenCasePat keepend
+syn region oilCaseClause     contained skipwhite skipempty start=+([^)]\+)+ end=+;;+ contains=oilCasePatParen keepend
 " Case block clause body (after "(pat)" to ";;")
 syn region oilCaseClauseBody contained skipwhite skipempty start=+.+ end=+;;+        contains=TOP
 
@@ -180,14 +198,16 @@ OilSynCluster oilVarList
 " xxx=yyy (at line beginning)
 syn match  oilAssignVar2 +^[a-zA-Z0-9]\+\ze\s*=+
 
-" $var, ${var}, $#, @ary
+" $var, ${var}, $#
 syn match  oilVar        +\$[a-zA-Z_0-9]\+\>\ze\([^(]\|$\)+ " excluding $xx(yy) etc.
 syn match  oilVar        +\${[a-zA-Z_0-9]\+}+
 syn match  oilVar        +\$#+
-syn match  oilVar        +@[a-zA-Z_0-9]\++
+
+" @list
+syn match  oilVarList    +@[a-zA-Z_0-9]\++
 
 " $(cmd)
-syn match  oilCommandSub +\$\ze(+ nextgroup=oilParenCommandSub
+syn match  oilCommandSub +\$\ze(+ nextgroup=oilCommandSubParen
 
 " "myproc" in "proc myproc()"
 syn match  oilProcName   +[a-zA-Z_0-9]\++ contained
@@ -216,7 +236,9 @@ if !exists("skip_oil_syntax_inits")
     OilHiDefLink Error       @oilEscapeEList
 
     " Expression wrapper
-    OilHiDefLink Type        @oilExprWrapList
+    OilHiDefLink Type        oilExpr
+    OilHiDefLink oilExpr     @oilExpr_DefaultList
+    OilHiDefLink oilExpr     @oilExprWrapList
     OilHiDefLink Error       @oilExprWrapEList
 
     " Expression mode components
@@ -228,7 +250,7 @@ if !exists("skip_oil_syntax_inits")
     OilHiDefLink Identifier  @oilVarList
 
     " Misc
-    OilHiDefLink PreProc     oilCommandSub oilParenCommandSub
+    OilHiDefLink PreProc     oilCommandSub oilCommandSubParen
     OilHiDefLink Function    oilProcName oilFuncName
     OilHiDefLink Comment     oilComment
 
