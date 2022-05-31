@@ -6,7 +6,28 @@ echo "Test $foo"              # Interpolation
 echo "$[2 * 4] \$notvar"
 echo $(ls)
 echo $abs(-2)
-proc fff(xxx) { echo $xxx }
+
+shopt -u simple_echo          # Shopt
+
+# Blocks
+find . -maxdepth 1 | while read f {
+	if (f ~ /^[0-9]*$/) {
+		echo mv $f cache/
+	}
+	case $f {
+		(*jpg | *mp4) echo mv $f media/ ;;
+		(*)           echo rm $f ;;
+	}
+}
+
+proc ask(title, question) {
+	yad --center --button=yes:0 --button=no:1 --text=$question
+}
+
+try ask "Really remove?"
+if test $_status = 0 {
+	echo rm -rf /
+}
 
 # Blocks
 if (foo ~ /[a-z]+/) {         # Expression mode after if keyword
@@ -50,6 +71,7 @@ var mydic = {
 	b: 20,
 	c: 30,
 }
+= { a:10 }
 
 if true {
 	if true {
@@ -147,6 +169,8 @@ echo $[3 * 5]
 echo $["a" * 5]
 echo $(ls)
 echo $abs(-2)
+echo "$[arr[123]] and @arr and $func(call)" # @arr is literal, $f(a) is error
+echo @arr
 
 var foo = 10
 # echo "$foo or ${foo} or $(ls) or $[3 * 5] or $abs(-2)"

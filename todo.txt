@@ -1,0 +1,7 @@
+TODO
+
+syntax: special var like $_status
+
+indent: Line after multiline string: same indent as the start of the multiline string
+indent: sh-style blocks (e.g. if/then/fi)
+
