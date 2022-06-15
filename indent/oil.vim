@@ -19,11 +19,13 @@ setl cinoptions+=#1,P0 " # is not preprocessor lines; so allow right-shifting th
 
 " cinkeys and indentkeys also must be modified
 setl cinkeys<
-setl cinkeys-=:        " don't trigger indent with :
-setl cinkeys-=0#       " don't put # at column 1
+setl cinkeys-=:                  " don't trigger indent with :
+setl cinkeys-=0#                 " don't put # at column 1
+setl cinkeys+==fi,=esac,=done    " reindent when those keywords are typed
 setl indentkeys<
-setl indentkeys-=:     " same
-setl indentkeys-=0#    " same
+setl indentkeys-=:               " same
+setl indentkeys-=0#              " same
+setl indentkeys+==fi,=esac,=done " same
 
 " misc
 setl smartindent
@@ -153,7 +155,13 @@ fu! GetOilIndent(debug=0)
     "     return indent(l1)
     " endif
 
-    " TODO: sh-style blocks (e.g. if/then/fi)
+    " Sh-style blocks (e.g. if/then/elif/else/fi, case/in/esac, for/while/do/done)
+    " simple approximation
+    if s:GetlineStripCommentTrim(lnumPNonContinued) =~ '^\s*\(\(if\|elif\)\>.*\<then\|then\|else\|case\>.*\<in\|in\|\(for\|while\)\>.*\<do\|do\)$'
+        let cin += &sw
+    elseif s:GetlineStripCommentTrim(lnum) =~ '^\s*\(elif\|else\|fi\|esac\|done\)$'
+        let cin -= &sw
+    endif
 
     " Fallback
     return cin

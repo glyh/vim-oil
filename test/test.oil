@@ -197,6 +197,27 @@ proc myfunc() {
 	return 10
 }
 
+
+## Sh-style blocks
+
+if true; then
+	echo yes
+else
+
+	echo yes
+
+fi
+
+case $x in  # aaaaaa
+	(*) echo yes ;;
+esac
+
+for i in a b c
+do
+	echo $i
+done
+
+
 ## Misc
 
 exit
