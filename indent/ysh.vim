@@ -1,5 +1,5 @@
 " Vim indent file
-" Language:    Oil Shell
+" Language:    YSH
 " Maintainer:  sj2tpgk
 " URL:         https://github.com/sj2tpgk/vim-oil
 

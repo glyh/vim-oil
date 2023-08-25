@@ -1,5 +1,5 @@
 " Vim filetype plugin file
-" Language:    Oil Shell
+" Language:    YSH
 " Maintainer:  sj2tpgk
 " URL:         https://github.com/sj2tpgk/vim-oil
 
@@ -26,7 +26,7 @@ endif
 setl omnifunc=syntaxcomplete#Complete
 
 if (has("gui_win32") || has("gui_gtk")) && !exists("b:browsefilter")
-  let  b:browsefilter="oil Scripts (*.oil)\t*.oil\n" ..
+  let  b:browsefilter="YSH (*.ysh)\t*.ysh\n" ..
 	\	      "All Files (*.*)\t*.*\n"
   let b:undo_ftplugin ..= " | unlet b:browsefilter"
 endif
