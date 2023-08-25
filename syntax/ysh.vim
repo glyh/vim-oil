@@ -262,5 +262,5 @@ unlet s:synClusters
 delcommand OilSynCluster
 delcommand OilHiDefLink
 
-let b:current_syntax = "oil"
+let b:current_syntax = "ysh"
 
