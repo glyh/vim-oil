@@ -11,7 +11,7 @@
 ## Installation
 If you use vim-plug:
 ```
-Plug 'sj2tpgk/vim-oil'
+Plug 'glyh/vim-oil'
 ```
 Should work with other package managers as well.
 
